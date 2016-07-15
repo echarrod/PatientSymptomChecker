@@ -67,7 +67,7 @@ user.state = 'state';
 app.get('/webhook', function (req, res) {
 	//if (req.query['hub.mode'] === 'subscribe' &&
  //     req.query['hub.verify_token'] === VALIDATION_TOKEN) {
-		console.log("Validating webhook");
+		//console.log("Validating webhook");
 		user.state = user.state + '1'
 		res.status(200).send(user.state);
 		//res.status(200).send(req.query['hub.challenge']);
@@ -310,6 +310,14 @@ function receivedMessage(event) {
 
 			case 'account linking':
 				sendAccountLinking(senderID);
+				break;
+
+			case 'pregnant':
+				sendPregnantQuickReply(senderID);
+				break;
+
+			case 'gender':
+				sendGenderQuickReply(senderID);
 				break;
 
 			default:
@@ -725,6 +733,67 @@ function sendQuickReply(recipientId) {
 	callSendAPI(messageData);
 }
 
+function sendPregnantQuickReply(recipientId) {
+	var messageData = {
+		recipient: {
+			id: recipientId
+		},
+		message: {
+			text: "Are you pregnant?",
+			metadata: "DEVELOPER_DEFINED_METADATA",
+			quick_replies: [
+				{
+					"content_type": "text",
+					"title": "Yes",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_YES"
+				},
+				{
+					"content_type": "text",
+					"title": "No",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_NO"
+				},
+				{
+					"content_type": "text",
+					"title": "Back",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_BACK"
+				}
+			]
+		}
+	};
+	
+	callSendAPI(messageData);
+}
+
+function sendGenderQuickReply(recipientId) {
+	var messageData = {
+		recipient: {
+			id: recipientId
+		},
+		message: {
+			text: "What gender are you?",
+			metadata: "DEVELOPER_DEFINED_METADATA",
+			quick_replies: [
+				{
+					"content_type": "text",
+					"title": "Female",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_FEMALE"
+				},
+				{
+					"content_type": "text",
+					"title": "Male",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_MALE"
+				},
+				{
+					"content_type": "text",
+					"title": "Other",
+					"payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_OTHER"
+				}
+			]
+		}
+	};
+	
+	callSendAPI(messageData);
+}
 /*
  * Send a read receipt to indicate the message has been read
  *
