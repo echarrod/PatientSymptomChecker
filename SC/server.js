@@ -255,7 +255,19 @@ function receivedMessage(event) {
 	}
 	
 	if (messageText) {
-		
+
+        var json = getJSON('https://graph.facebook.com/v2.6/' + senderID + '?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=' + PAGE_ACCESS_TOKEN, function (body) {
+            console.log('we have the body!', body);
+        });
+
+        var first_name = json.first_name;
+        var last_name = json.last_name;
+        var locale = json.locale;
+        var gender = json.gender;
+
+        postman.setEnvironmentVariable("token", jsonData.token);
+
+    //""
 		// If we receive a text message, check to see if it matches any special
 		// keywords and send back the corresponding example. Otherwise, just echo
 		// the text we received.
@@ -328,6 +340,16 @@ function receivedMessage(event) {
 	}
 }
 
+function getJSON(url, callback) {
+    request({
+        url: url,
+        json: true
+    }, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
+            callback(body);
+        }
+    });
+}
 
 /*
  * Delivery Confirmation Event

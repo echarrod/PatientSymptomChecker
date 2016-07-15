@@ -5,7 +5,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>PatientSymptomChecker</Name>
     <RootNamespace>PSC</RootNamespace>
-    <NameOfLastUsedPublishProfile>PatientSymptomChecker - Web Deploy</NameOfLastUsedPublishProfile>
+    <NameOfLastUsedPublishProfile>SymptomChecker - Web Deploy</NameOfLastUsedPublishProfile>
     <LaunchUrl>http://localhost:1337/webhook</LaunchUrl>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -35,7 +35,6 @@
   <ItemGroup>
     <Compile Include="server.js" />
     <Content Include="config\default.json" />
-    <None Include="PatientSymptomChecker - Web Deploy.pubxml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config" />
     <Content Include="bin\ChangeConfig.ps1" />
