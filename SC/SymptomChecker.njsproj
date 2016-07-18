@@ -35,7 +35,6 @@
   <ItemGroup>
     <Compile Include="server.js" />
     <Content Include="config\default.json" />
-    <None Include="SymptomChecker - Web Deploy.pubxml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config" />
     <Content Include="bin\ChangeConfig.ps1" />

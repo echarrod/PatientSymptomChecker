@@ -8,7 +8,7 @@
  */
 
 /* jshint node: true, devel: true */
-//'use strict';
+'use strict';
 
 const
     bodyParser = require('body-parser'),
@@ -324,16 +324,35 @@ function receivedMessage(event) {
                 sendAccountLinking(senderID);
                 break;
 
-            case 'pregnant':
-                sendPregnantQuickReply(senderID);
+            case 'age':
+                sendAgeButtonMessage(senderID);
+                break;
+
+            case 'Female':
+            case 'Other':
+                sendPregnantButtonMessage(senderID);
+                break;
+
+            case 'Yes':
+            case 'No':
+                sendDateOfBirthMessage(senderID);
                 break;
 
             case 'gender':
-                sendGenderQuickReply(senderID);
+                sendGenderButtonMessage(senderID);
                 break;
 
             default:
-                sendTextMessage(senderID, messageText);
+                var DoBTimeStamp = Date.parse(messageText)
+
+                if (isNaN(DoBTimeStamp) == false) {
+                    Console.log("DoB = " + DoBTimeStamp);
+                    var DoBDate = new Date(DoBTimeStamp);
+
+                    sendTextMessage(senderID, DoBDate); //send data to Isabel
+                } else {
+                    sendTextMessage(senderID, messageText);
+                }
         }
     } else if (messageAttachments) {
         sendTextMessage(senderID, "Message with attachment received");
@@ -578,6 +597,20 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
+function sendDateOfBirthMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: "What is your date of birth?",
+            metadata: "DEVELOPER_DEFINED_METADATA"
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
 /*
  * Send a button message using the Send API.
  *
@@ -605,6 +638,102 @@ function sendButtonMessage(recipientId) {
                             type: "phone_number",
                             title: "Call Phone Number",
                             payload: "+16505551234"
+                        }]
+                }
+            }
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
+function sendPregnantButtonMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "Are you pregnant?",
+                    buttons: [{
+                        type: "postback",
+                        title: "Yes",
+                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                    }, {
+                            type: "postback",
+                            title: "No",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        }, {
+                            type: "postback",
+                            title: "Back",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        }]
+                }
+            }
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
+function sendGenderButtonMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "What is your gender?",
+                    buttons: [{
+                        type: "postback",
+                        title: "Female",
+                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                    }, {
+                            type: "postback",
+                            title: "Male",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        }, {
+                            type: "postback",
+                            title: "Other",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        }]
+                }
+            }
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
+function sendAgeButtonMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "Age of patient",
+                    buttons: [{
+                        type: "postback",
+                        title: "< 18 years old",
+                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                    }, {
+                            type: "postback",
+                            title: "18 - 50 years old",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        }, {
+                            type: "postback",
+                            title: "> 50 years old",
+                            payload: "DEVELOPED_DEFINED_PAYLOAD"
                         }]
                 }
             }
@@ -766,67 +895,6 @@ function sendQuickReply(recipientId) {
     callSendAPI(messageData);
 }
 
-function sendPregnantQuickReply(recipientId) {
-    var messageData = {
-        recipient: {
-            id: recipientId
-        },
-        message: {
-            text: "Are you pregnant?",
-            metadata: "DEVELOPER_DEFINED_METADATA",
-            quick_replies: [
-                {
-                    "content_type": "text",
-                    "title": "Yes",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_YES"
-                },
-                {
-                    "content_type": "text",
-                    "title": "No",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_NO"
-                },
-                {
-                    "content_type": "text",
-                    "title": "Back",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_BACK"
-                }
-            ]
-        }
-    };
-
-    callSendAPI(messageData);
-}
-
-function sendGenderQuickReply(recipientId) {
-    var messageData = {
-        recipient: {
-            id: recipientId
-        },
-        message: {
-            text: "What gender are you?",
-            metadata: "DEVELOPER_DEFINED_METADATA",
-            quick_replies: [
-                {
-                    "content_type": "text",
-                    "title": "Female",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_FEMALE"
-                },
-                {
-                    "content_type": "text",
-                    "title": "Male",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_MALE"
-                },
-                {
-                    "content_type": "text",
-                    "title": "Other",
-                    "payload": "DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_OTHER"
-                }
-            ]
-        }
-    };
-
-    callSendAPI(messageData);
-}
 /*
  * Send a read receipt to indicate the message has been read
  *
