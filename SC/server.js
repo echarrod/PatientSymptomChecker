@@ -253,19 +253,53 @@ function receivedMessage(event) {
         sendTextMessage(senderID, "Quick reply tapped");
         return;
     }
+    if (messageAttachments) {
+        if (messageAttachments.template_type = "button") {
+            switch (messageAttachments.payload) {
+                case 'AGE_LT_18_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
+                case 'AGE_18_50_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
+                case 'AGE_GT_50_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
 
-    if (messageText) {
+                case 'FEMALE_PAYLOAD':
+                    sendPregnantButtonMessage(senderID);
+                    break;
+                case 'MALE_PAYLOAD':
+                    sendAgeButtonMessage(senderID);
+                    break;
+                case 'OTHER_PAYLOAD':
+                    sendPregnantButtonMessage(senderID);
+                    break;
+
+                case 'YES_PAYLOAD':
+                    sendAgeButtonMessage(senderID);
+                    break;
+                case 'NO_PAYLOAD':
+                    sendAgeButtonMessage(senderID);
+                    break;
+                case 'BACK_PAYLOAD':
+                    sendGenderButtonMessage(senderID);
+                    break;
+            }
+        }
+        else {
+            sendTextMessage(senderID, "Message with attachment received");
+        }
+    }
+    else if (messageText) {
+        //var json = getJSON('https://graph.facebook.com/v2.6/' + senderID + '?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=' + PAGE_ACCESS_TOKEN, function (body) {
+        //    console.log('we have the body!', body);
+        //});
 
         //var first_name = json.first_name;
         //var last_name = json.last_name;
         //var locale = json.locale;
         //var gender = json.gender;
-
-        //var json = getJSON('https://graph.facebook.com/v2.6/' + senderID + '?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=' + PAGE_ACCESS_TOKEN, function (body) {
-        //    console.log('we have the body!', body);
-        //});
-
-        //postman.setEnvironmentVariable("token", jsonData.token);
 
         //""
         // If we receive a text message, check to see if it matches any special
@@ -362,13 +396,19 @@ function receivedMessage(event) {
                     console.log("DoB = " + DoBTimeStamp);
                     var DoBDate = new Date(DoBTimeStamp);
 
-                    sendTextMessage(senderID, DoBDate); //send data to Isabel
+                    sendTextMessage(senderID, DoBDate);
+                    sendQueryTextMessage(senderID);
                 } else {
-                    sendTextMessage(senderID, messageText);
+                    if (messageText.indexOf(',') > -1) {
+                        var jsonResponse = getDiagnoses(messageText);
+                        sendTextMessage(JSON.stringify(jsonResponse));
+                        break;
+                    }
+                    else {
+                        sendTextMessage(senderID, messageText);
+                    }
                 }
         }
-    } else if (messageAttachments) {
-        sendTextMessage(senderID, "Message with attachment received");
     }
 }
 
@@ -390,8 +430,12 @@ function getDiagnoses(queryText) {
     var queryText = "cold | cough | fever";
     var dateOfBirth = "7";
     var gender = "m";
-    //// encodeURIComponent("http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + region + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
 
+    var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + region + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
+    sendTextMessage(senderID, "Generated URL: " + generatedUrl);
+
+    var jsonResponse = encodeURIComponent(generatedUrl);
+    return jsonResponse;
 }
 
 /*
@@ -624,6 +668,20 @@ function sendDateOfBirthMessage(recipientId) {
     callSendAPI(messageData);
 }
 
+function sendQueryTextMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: "Please enter your symptoms, separated by a comma: e.g. 'headache, back pain, temperature'",
+            metadata: "QUERY_METADATA"
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
 /*
  * Send a button message using the Send API.
  *
@@ -674,15 +732,15 @@ function sendPregnantButtonMessage(recipientId) {
                     buttons: [{
                         type: "postback",
                         title: "Yes",
-                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        payload: "YES_PAYLOAD"
                     }, {
                             type: "postback",
                             title: "No",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "NO_PAYLOAD"
                         }, {
                             type: "postback",
                             title: "Back",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "BACK_PAYLOAD"
                         }]
                 }
             }
@@ -706,15 +764,15 @@ function sendGenderButtonMessage(recipientId) {
                     buttons: [{
                         type: "postback",
                         title: "Female",
-                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        payload: "FEMALE_PAYLOAD"
                     }, {
                             type: "postback",
                             title: "Male",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "MALE_PAYLOAD"
                         }, {
                             type: "postback",
                             title: "Other",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "OTHER_PAYLOAD"
                         }]
                 }
             }
@@ -738,15 +796,15 @@ function sendAgeButtonMessage(recipientId) {
                     buttons: [{
                         type: "postback",
                         title: "< 18 years old",
-                        payload: "DEVELOPED_DEFINED_PAYLOAD"
+                        payload: "AGE_LT_18_PAYLOAD"
                     }, {
                             type: "postback",
                             title: "18 - 50 years old",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "AGE_18_50_PAYLOAD"
                         }, {
                             type: "postback",
                             title: "> 50 years old",
-                            payload: "DEVELOPED_DEFINED_PAYLOAD"
+                            payload: "AGE_GT_50_PAYLOAD"
                         }]
                 }
             }
@@ -1002,7 +1060,7 @@ function callSendAPI(messageData) {
     }, function (error, response, body) {
         console.log("error : " + error);
         console.log("response : " + response);
-        console.log("statusCode : " + response.statusCode); 
+        console.log("statusCode : " + response.statusCode);
         if (!error && response.statusCode == 200) {
             var recipientId = body.recipient_id;
             var messageId = body.message_id;
