@@ -329,16 +329,29 @@ function receivedMessage(event) {
                 break;
 
             case 'Female':
+            case 'female':
+            case 'f':
             case 'Other':
+            case 'other':
+            case 'NA':
+            case 'na':
+            case 'n/a':
                 sendPregnantButtonMessage(senderID);
                 break;
 
             case 'Yes':
             case 'No':
+            case 'yes':
+            case 'no':
+            case 'Y':
+            case 'N':
+            case 'y':
+            case 'n':
                 sendDateOfBirthMessage(senderID);
                 break;
 
-            case 'gender':
+            case 'Get Started':
+            case 'get started':
                 sendGenderButtonMessage(senderID);
                 break;
 
@@ -346,7 +359,7 @@ function receivedMessage(event) {
                 var DoBTimeStamp = Date.parse(messageText)
 
                 if (isNaN(DoBTimeStamp) == false) {
-                    Console.log("DoB = " + DoBTimeStamp);
+                    console.log("DoB = " + DoBTimeStamp);
                     var DoBDate = new Date(DoBTimeStamp);
 
                     sendTextMessage(senderID, DoBDate); //send data to Isabel
@@ -979,13 +992,17 @@ function sendAccountLinking(recipientId) {
  *
  */
 function callSendAPI(messageData) {
+    console.log("messageData : " + messageData);
+
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
         qs: { access_token: PAGE_ACCESS_TOKEN },
         method: 'POST',
         json: messageData
-
     }, function (error, response, body) {
+        console.log("error : " + error);
+        console.log("response : " + response);
+        console.log("statusCode : " + response.statusCode); 
         if (!error && response.statusCode == 200) {
             var recipientId = body.recipient_id;
             var messageId = body.message_id;
