@@ -424,15 +424,16 @@ function receivedMessage(event) {
 //}
 
 function getDiagnoses(queryText) {
-    var username = 1934;
+    var userId = 1934;
     var password = "15abel2016";
     var regionId = 1;
-    var queryText = "cold | cough | fever";
+    var queryText = queryText;
+    queryText.replace(/,+\s*,*/g, "|").trim(); //replace commas with pipe operator
+
     var dateOfBirth = "7";
     var gender = "m";
 
-    var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + region + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
-    sendTextMessage(senderID, "Generated URL: " + generatedUrl);
+    var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + regionId + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
 
     var jsonResponse = encodeURIComponent(generatedUrl);
     return jsonResponse;
@@ -482,6 +483,18 @@ function receivedPostback(event) {
 
     console.log("Received postback for user %d and page %d with payload '%s' " +
         "at %d", senderID, recipientID, payload, timeOfPostback);
+
+    switch (payload) {
+        case 'FEMALE_PAYLOAD':
+            sendPregnantButtonMessage(senderID);
+            break;
+        case 'MALE_PAYLOAD':
+            sendAgeButtonMessage(senderID);
+            break;
+        case 'OTHER_PAYLOAD':
+            sendPregnantButtonMessage(senderID);
+            break;
+    }
 
     // When a postback is called, we'll send a message back to the sender to 
     // let them know it was successful
