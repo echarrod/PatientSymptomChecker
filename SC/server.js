@@ -255,7 +255,7 @@ function receivedMessage(event) {
     }
     if (messageAttachments) {
         if (messageAttachments.template_type = "button") {
-            switch (messageAttachments.payload) {               
+            switch (messageAttachments.payload) {
                 case 'FEMALE_PAYLOAD':
                     sendPregnantButtonMessage(senderID);
                     break;
@@ -288,7 +288,7 @@ function receivedMessage(event) {
 
                 default:
                     sendTextMessage(senderID, "Message with payload received");
-                    Console.log("Payload not recognised");
+                    console.log("Payload not recognised");
             }
         }
         else {
@@ -363,7 +363,7 @@ function receivedMessage(event) {
                 break;
 
             case 'age':
-                sendAgeButtonMessage(senderID);
+                sendAgeQuickReplyMessage(senderID);
                 break;
 
             case 'Female':
@@ -405,9 +405,9 @@ function receivedMessage(event) {
                 } else {
                     if (messageText.indexOf(',') > -1) {
                         var jsonResponse = getDiagnoses(messageText);
-                        Console.log("\r\nJSON Response: " + jsonResponse);
-                        Console.log("\r\nJSON Stringified: " + JSON.stringify(jsonResponse));
-                        //sendTextMessage(JSON.stringify(jsonResponse));
+                        //console.log("\r\nJSON Stringified: " + JSON.stringify(jsonResponse));
+                        var JSONStringified = JSON.stringify(jsonResponse)
+                        sendTextMessage(senderID, JSONStringified);
                         break;
                     }
                     else {
@@ -429,6 +429,8 @@ function receivedMessage(event) {
 //    });
 //}
 
+var jsonResponse;
+
 function getDiagnoses(queryText) {
     var userId = 1934;
     var password = "15abel2016";
@@ -439,23 +441,30 @@ function getDiagnoses(queryText) {
     var gender = "m";
 
     var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + regionId + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
-    Console.log("Generated URL: " + generatedUrl);
+    //console.log("Generated URL: " + generatedUrl);
     var encodedURI = encodeURI(generatedUrl);
-    Console.log("EncodedURI: " + encodedURI);
-    var jsonResponse;
+    //console.log("EncodedURI: " + encodedURI);
 
+    getJSON(encodedURI, assignJSON);
+
+    return jsonResponse;
+}
+
+
+function getJSON(encodedURI, callback) {
     request({
         url: encodedURI,
         json: true
     }, function (error, response, body) {
 
         if (!error && response.statusCode === 200) {
-            console.log("JSONResponse: " + body)
-            jsonResponse = body;
+            callback(body);
         }
     })
+}
 
-    return jsonResponse;
+function assignJSON(JSON) {
+    jsonResponse = JSON;
 }
 
 /*
@@ -532,7 +541,7 @@ function receivedPostback(event) {
             break;
         case 'AGE_GT_50_PAYLOAD':
             sendQueryTextMessage(senderID);
-            break;       
+            break;
 
         default:
             sendTextMessage(senderID, "Postback called");
@@ -1021,6 +1030,48 @@ function sendQuickReply(recipientId) {
     callSendAPI(messageData);
 }
 
+
+function sendAgeQuickReplyMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: "Age of patient (years)",
+            metadata: "DEVELOPER_DEFINED_METADATA",
+            quick_replies: [
+                {
+                    "content_type": "text",
+                    "title": "0-6",
+                    "payload": "AGE_1_PAYLOAD"
+                },
+                {
+                    "content_type": "text",
+                    "title": "7-18",
+                    "payload": "AGE_2_PAYLOAD"
+                },
+                {
+                    "content_type": "text",
+                    "title": "19-40",
+                    "payload": "AGE_3_PAYLOAD"
+                },
+                {
+                    "content_type": "text",
+                    "title": "41-60",
+                    "payload": "AGE_4_PAYLOAD"
+                },
+                {
+                    "content_type": "text",
+                    "title": "61+",
+                    "payload": "AGE_5_PAYLOAD"
+                }
+            ]
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
 /*
  * Send a read receipt to indicate the message has been read
  *
@@ -1128,7 +1179,11 @@ function callSendAPI(messageData) {
             //        recipientId);
             //}
         } else {
-            console.error(response.error);
+            if (response == null)
+                sendTextMessage("Sorry there seems to be a connection issue currently, please try again later");
+            else {
+                console.error(response.error);
+            }
         }
     });
 }
