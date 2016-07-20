@@ -255,17 +255,7 @@ function receivedMessage(event) {
     }
     if (messageAttachments) {
         if (messageAttachments.template_type = "button") {
-            switch (messageAttachments.payload) {
-                case 'AGE_LT_18_PAYLOAD':
-                    sendQueryTextMessage(senderID);
-                    break;
-                case 'AGE_18_50_PAYLOAD':
-                    sendQueryTextMessage(senderID);
-                    break;
-                case 'AGE_GT_50_PAYLOAD':
-                    sendQueryTextMessage(senderID);
-                    break;
-
+            switch (messageAttachments.payload) {               
                 case 'FEMALE_PAYLOAD':
                     sendPregnantButtonMessage(senderID);
                     break;
@@ -285,6 +275,20 @@ function receivedMessage(event) {
                 case 'BACK_PAYLOAD':
                     sendGenderButtonMessage(senderID);
                     break;
+
+                case 'AGE_LT_18_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
+                case 'AGE_18_50_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
+                case 'AGE_GT_50_PAYLOAD':
+                    sendQueryTextMessage(senderID);
+                    break;
+
+                default:
+                    sendTextMessage(senderID, "Message with payload received");
+                    Console.log("Payload not recognised");
             }
         }
         else {
@@ -481,7 +485,7 @@ function receivedPostback(event) {
     // button for Structured Messages. 
     var payload = event.postback.payload;
 
-    console.log("Received postback for user %d and page %d with payload '%s' " +
+    console.log("\r\nReceived postback for user %d and page %d with payload '%s' " +
         "at %d", senderID, recipientID, payload, timeOfPostback);
 
     switch (payload) {
@@ -494,6 +498,27 @@ function receivedPostback(event) {
         case 'OTHER_PAYLOAD':
             sendPregnantButtonMessage(senderID);
             break;
+
+        case 'YES_PAYLOAD':
+            sendAgeButtonMessage(senderID);
+            break;
+        case 'NO_PAYLOAD':
+            sendAgeButtonMessage(senderID);
+            break;
+        case 'BACK_PAYLOAD':
+            sendGenderButtonMessage(senderID);
+            break;
+
+        case 'AGE_LT_18_PAYLOAD':
+            sendQueryTextMessage(senderID);
+            break;
+        case 'AGE_18_50_PAYLOAD':
+            sendQueryTextMessage(senderID);
+            break;
+        case 'AGE_GT_50_PAYLOAD':
+            sendQueryTextMessage(senderID);
+            break;       
+
         default:
             sendTextMessage(senderID, "Postback called");
             break;
