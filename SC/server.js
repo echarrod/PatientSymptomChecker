@@ -405,7 +405,9 @@ function receivedMessage(event) {
                 } else {
                     if (messageText.indexOf(',') > -1) {
                         var jsonResponse = getDiagnoses(messageText);
-                        sendTextMessage(JSON.stringify(jsonResponse));
+                        Console.log("\r\nJSON Response: " + jsonResponse);
+                        Console.log("\r\nJSON Stringified: " + JSON.stringify(jsonResponse));
+                        //sendTextMessage(JSON.stringify(jsonResponse));
                         break;
                     }
                     else {
@@ -432,14 +434,27 @@ function getDiagnoses(queryText) {
     var password = "15abel2016";
     var regionId = 1;
     var queryText = queryText;
-    queryText.replace(/,+\s*,*/g, "|").trim(); //replace commas with pipe operator
-
+    queryText.replace(/, +\s +,*/g, ",").trim(); //replace multiple commas or commas and spaces with a single comma
     var dateOfBirth = "7";
     var gender = "m";
 
     var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + regionId + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
+    Console.log("Generated URL: " + generatedUrl);
+    var encodedURI = encodeURI(generatedUrl);
+    Console.log("EncodedURI: " + encodedURI);
+    var jsonResponse;
 
-    var jsonResponse = encodeURIComponent(generatedUrl);
+    request({
+        url: encodedURI,
+        json: true
+    }, function (error, response, body) {
+
+        if (!error && response.statusCode === 200) {
+            console.log("JSONResponse: " + body)
+            jsonResponse = body;
+        }
+    })
+
     return jsonResponse;
 }
 
