@@ -226,8 +226,8 @@ function receivedMessage(event) {
     var timeOfMessage = event.timestamp;
     var message = event.message;
 
-    console.log("Received message for user %d and page %d at %d with message:",
-        senderID, recipientID, timeOfMessage);
+    //console.log("Received message for user %d and page %d at %d with message:",
+    //    senderID, recipientID, timeOfMessage);
     console.log(JSON.stringify(message));
 
     var isEcho = message.is_echo;
@@ -242,8 +242,8 @@ function receivedMessage(event) {
 
     if (isEcho) {
         // Just logging message echoes to console
-        console.log("Received echo for message %s and app %d with metadata %s",
-            messageId, appId, metadata);
+        //console.log("Received echo for message %s and app %d with metadata %s",
+        //    messageId, appId, metadata);
         return;
     } else if (quickReply) {
         var quickReplyPayload = quickReply.payload;
@@ -456,12 +456,12 @@ function receivedDeliveryConfirmation(event) {
 
     if (messageIDs) {
         messageIDs.forEach(function (messageID) {
-            console.log("Received delivery confirmation for message ID: %s",
-                messageID);
+            //console.log("Received delivery confirmation for message ID: %s",
+            //    messageID);
         });
     }
 
-    console.log("All message before %d were delivered.", watermark);
+    //console.log("All messages before %d were delivered.", watermark);
 }
 
 
@@ -494,11 +494,13 @@ function receivedPostback(event) {
         case 'OTHER_PAYLOAD':
             sendPregnantButtonMessage(senderID);
             break;
+        default:
+            sendTextMessage(senderID, "Postback called");
+            break;
     }
 
     // When a postback is called, we'll send a message back to the sender to 
     // let them know it was successful
-    sendTextMessage(senderID, "Postback called");
 }
 
 /*
@@ -516,8 +518,8 @@ function receivedMessageRead(event) {
     var watermark = event.read.watermark;
     var sequenceNumber = event.read.seq;
 
-    console.log("Received message read event for watermark %d and sequence " +
-        "number %d", watermark, sequenceNumber);
+    //console.log("Received message read event for watermark %d and sequence " +
+    //    "number %d", watermark, sequenceNumber);
 }
 
 /*
@@ -1063,7 +1065,7 @@ function sendAccountLinking(recipientId) {
  *
  */
 function callSendAPI(messageData) {
-    console.log("messageData : " + messageData);
+    //console.log("messageData : " + messageData);
 
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
@@ -1071,20 +1073,20 @@ function callSendAPI(messageData) {
         method: 'POST',
         json: messageData
     }, function (error, response, body) {
-        console.log("error : " + error);
-        console.log("response : " + response);
-        console.log("statusCode : " + response.statusCode);
+        //console.log("error : " + error);
+        //console.log("response : " + response);
+        //console.log("statusCode : " + response.statusCode);
         if (!error && response.statusCode == 200) {
             var recipientId = body.recipient_id;
             var messageId = body.message_id;
 
-            if (messageId) {
-                console.log("Successfully sent message with id %s to recipient %s",
-                    messageId, recipientId);
-            } else {
-                console.log("Successfully called Send API for recipient %s",
-                    recipientId);
-            }
+            //if (messageId) {
+            //    console.log("Successfully sent message with id %s to recipient %s",
+            //        messageId, recipientId);
+            //} else {
+            //    console.log("Successfully called Send API for recipient %s",
+            //        recipientId);
+            //}
         } else {
             console.error(response.error);
         }
