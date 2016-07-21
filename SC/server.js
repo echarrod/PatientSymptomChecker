@@ -457,7 +457,8 @@ function sendPotentialDiagnoses(messageText, senderID) {
         weightage = result['Diagnosis_checklist']['diagnosis'][0]['weightage'][0];
 
         conditions = {
-            diagnosesName: {
+            diagnosis: {
+                'diagnosisName': diagnosesName,
                 'diagnosesUrl': diagnosesUrl,
                 'common': common,
                 'urgent': urgent,
@@ -950,71 +951,43 @@ function sendGenericMessage(recipientId) {
 
 function sendConditionsAsStructuredMessage(recipientId, conditions) {
     var subtitleText = "";
-    if (conditions.diagnosesName.common == "true") {
+    if (conditions.diagnosis.common == "true") {
         subtitleText += "[Common] ";
     }
-    if (conditions.diagnosesName.urgent == "true") {
+    if (conditions.diagnosis.urgent == "true") {
         subtitleText += "[Urgent] ";
     }
-    subtitleText += "Weight: " + conditions.diagnosesName.weightage;
+    subtitleText += "Weight: " + conditions.diagnosis.weightage;
 
     var messageData = {
         recipient: {
             id: recipientId
         },
         message: {
+
             attachment: {
                 type: "template",
                 payload: {
                     template_type: "generic",
                     elements: [
                         {
-                            title: conditions.diagnosesName,
+                            title: conditions.diagnosis.diagnosisName,
                             subtitle: subtitleText,
-                            item_url: conditions.diagnosesName.diagnosesUrl,
+                            item_url: conditions.diagnosis.diagnosesUrl,
                             image_url: SERVER_URL + "/assets/rift.png",
                             buttons: [{
                                 type: "web_url",
-                                url: conditions.diagnosesName.diagnosesUrl,
+                                url: conditions.diagnosis.diagnosesUrl,
                                 title: "Open Web URL"
                             }, {
                                     type: "postback",
-                                    title: "More info",
-                                    payload: "Payload for first bubble",
-                                }],
-                        },
-                        {
-                            title: conditions.diagnosesName,
-                            subtitle: subtitleText,
-                            item_url: conditions.diagnosesName.diagnosesUrl,
-                            image_url: SERVER_URL + "/assets/rift.png",
-                            buttons: [{
-                                type: "web_url",
-                                url: conditions.diagnosesName.diagnosesUrl,
-                                title: "Open Web URL"
-                            }, {
-                                    type: "postback",
-                                    title: "More info",
-                                    payload: "Payload for first bubble",
-                                }],
-                        },
-                        {
-                            title: conditions.diagnosesName,
-                            subtitle: subtitleText,
-                            item_url: conditions.diagnosesName.diagnosesUrl,
-                            image_url: SERVER_URL + "/assets/rift.png",
-                            buttons: [{
-                                type: "web_url",
-                                url: conditions.diagnosesName.diagnosesUrl,
-                                title: "Open Web URL"
-                            }, {
-                                    type: "postback",
-                                    title: "More info",
-                                    payload: "Payload for first bubble",
-                                }],
+                                    title: "Call Postback",
+                                    payload: "Payload for second bubble",
+                                }]
                         }]
                 }
             }
+
         }
     };
 
@@ -1274,7 +1247,9 @@ function callSendAPI(messageData) {
             if (response == null)
                 sendTextMessage("Sorry there seems to be a connection issue currently, please try again later");
             else {
-                console.error(response.error);
+                if (response.error != null) {
+                    console.error(response.error);
+                }
             }
         }
     });
