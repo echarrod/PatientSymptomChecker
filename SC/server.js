@@ -16,7 +16,8 @@ const
     crypto = require('crypto'),
     express = require('express'),
     https = require('https'),
-    request = require('request');
+    request = require('request'),
+    xml2js = require('xml2js');
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -404,11 +405,7 @@ function receivedMessage(event) {
                     sendQueryTextMessage(senderID);
                 } else {
                     if (messageText.indexOf(',') > -1) {
-                        var jsonResponse = getDiagnoses(messageText);
-                        //console.log("\r\nJSON Stringified: " + JSON.stringify(jsonResponse));
-                        var JSONStringified = JSON.stringify(jsonResponse)
-                        sendTextMessage(senderID, JSONStringified);
-                        break;
+                        sendPotentialDiagnoses(messageText, senderID);
                     }
                     else {
                         sendTextMessage(senderID, messageText);
@@ -418,36 +415,69 @@ function receivedMessage(event) {
     }
 }
 
-//function getJSON(url, callback) {
-//    request({
-//        url: url,
-//        json: true
-//    }, function (error, response, body) {
-//        if (!error && response.statusCode === 200) {
-//            callback(body);
-//        }
-//    });
-//}
-
 var jsonResponse;
 
-function getDiagnoses(queryText) {
+function sendPotentialDiagnoses(messageText, senderID) {
     var userId = 1934;
     var password = "15abel2016";
     var regionId = 1;
-    var queryText = queryText;
+    var queryText = messageText;
     queryText.replace(/, +\s +,*/g, ",").trim(); //replace multiple commas or commas and spaces with a single comma
     var dateOfBirth = "7";
     var gender = "m";
 
     var generatedUrl = "http://symptomchecker.isabelhealthcare.com/private/emr_diagnosis.jsp?flag=sortbyRW_advanced&search_type=diagnosis&system_id=2138&region=" + regionId + "&logic=&pre_diagnoses_id=&n_return=&query[use_synonym]=1&specialties=28&web_service=true&id=" + userId + "&password=" + password + "&dob=" + dateOfBirth + "&sex=" + gender + "&querytext=" + queryText;
-    //console.log("Generated URL: " + generatedUrl);
     var encodedURI = encodeURI(generatedUrl);
-    //console.log("EncodedURI: " + encodedURI);
 
     getJSON(encodedURI, assignJSON);
 
-    return jsonResponse;
+    if (jsonResponse == null) {
+        console.log("No JsonResponse");
+        return;
+    }
+
+    var xml = jsonResponse;
+
+    var parseString = xml2js.parseString;
+    var extractedData = "";
+    var parser = new xml2js.Parser();
+    var conditions;
+    var diagnosesName;
+    var diagnosesUrl;
+    var common
+    var urgent
+    var weightage;
+
+    parser.parseString(xml, function (err, result) {
+        //Extract the value from the data element
+        diagnosesName = result['Diagnosis_checklist']['diagnosis'][0]['diagnoses_name'][0];
+        diagnosesUrl = encodeURI("http://patient.info/search.asp?searchterm=" + diagnosesName + "&searchcoll=All");
+        common = result['Diagnosis_checklist']['diagnosis'][0]['common_diagnoses'][0];
+        urgent = result['Diagnosis_checklist']['diagnosis'][0]['red_flag'][0];
+        weightage = result['Diagnosis_checklist']['diagnosis'][0]['weightage'][0];
+
+        conditions = {
+            diagnosesName: {
+                'diagnosesUrl': diagnosesUrl,
+                'common': common,
+                'urgent': urgent,
+                'weightage': weightage
+            }
+        };
+    });
+
+
+    sendConditionsAsStructuredMessage(senderID, conditions);
+}
+
+function LogName(name) {
+    console.log("name: " + name);
+
+    return name
+}
+
+function getDiagnoses(queryText) {
+
 }
 
 
@@ -920,6 +950,83 @@ function sendGenericMessage(recipientId) {
                                     title: "Call Postback",
                                     payload: "Payload for second bubble",
                                 }]
+                        }]
+                }
+            }
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
+
+
+/*
+ * Send a Structured Message (Generic Message type) using the Send API.
+ *
+ */
+function sendConditionsAsStructuredMessage(recipientId, conditions) {
+    var subtitleText = "";
+    if (conditions.diagnosesName.common == "true") {
+        subtitleText += "[Common] ";
+    }
+    if (conditions.diagnosesName.urgent == "true") {
+        subtitleText += "[Urgent] ";
+    }
+    subtitleText += "Weight: " + conditions.diagnosesName.weightage;
+
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "generic",
+                    elements: [{
+                        title: conditions.diagnosesName,
+                        subtitle: subtitleText,
+                        item_url: conditions.diagnosesName.diagnosesUrl,
+                        //image_url: SERVER_URL + "/assets/rift.png",
+                        buttons: [{
+                            type: "web_url",
+                            url: conditions.diagnosesName.diagnosesUrl,
+                            title: "Open Web URL"
+                            }, {
+                                type: "postback",
+                                title: "More info",
+                                payload: "Payload for first bubble",
+                            }],
+                            }, {
+                            title: conditions.diagnosesName,
+                            subtitle: subtitleText,
+                            item_url: conditions.diagnosesName.diagnosesUrl,
+                            //image_url: SERVER_URL + "/assets/rift.png",
+                            buttons: [{
+                                type: "web_url",
+                                url: conditions.diagnosesName.diagnosesUrl,
+                                title: "Open Web URL"
+                            }, {
+                                    type: "postback",
+                                    title: "More info",
+                                    payload: "Payload for first bubble",
+                                }],
+                            },
+                            {
+                            title: conditions.diagnosesName,
+                            subtitle: subtitleText,
+                            item_url: conditions.diagnosesName.diagnosesUrl,
+                            //image_url: SERVER_URL + "/assets/rift.png",
+                            buttons: [{
+                                type: "web_url",
+                                url: conditions.diagnosesName.diagnosesUrl,
+                                title: "Open Web URL"
+                            }, {
+                                    type: "postback",
+                                    title: "More info",
+                                    payload: "Payload for first bubble",
+                                }],
                         }]
                 }
             }
