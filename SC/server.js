@@ -441,7 +441,7 @@ function sendPotentialDiagnoses(messageText, senderID) {
     var parseString = xml2js.parseString;
     var extractedData = "";
     var parser = new xml2js.Parser();
-    var conditions;
+    var conditions = [];
     var diagnosesName;
     var diagnosesUrl;
     var common
@@ -450,20 +450,24 @@ function sendPotentialDiagnoses(messageText, senderID) {
 
     parser.parseString(xml, function (err, result) {
         //Extract the value from the data element
-        diagnosesName = result['Diagnosis_checklist']['diagnosis'][0]['diagnoses_name'][0];
-        diagnosesUrl = encodeURI("http://patient.info/search.asp?searchterm=" + diagnosesName + "&searchcoll=All");
-        common = result['Diagnosis_checklist']['diagnosis'][0]['common_diagnoses'][0];
-        urgent = result['Diagnosis_checklist']['diagnosis'][0]['red_flag'][0];
-        weightage = result['Diagnosis_checklist']['diagnosis'][0]['weightage'][0];
 
-        conditions = {
-            diagnosis: {
-                'diagnosisName': diagnosesName,
-                'diagnosesUrl': diagnosesUrl,
-                'common': common,
-                'urgent': urgent,
-                'weightage': weightage
-            }
+        for (var i = 0; i < 5; i++) {
+            diagnosesName = result['Diagnosis_checklist']['diagnosis'][i]['diagnoses_name'][0];
+            diagnosesUrl = encodeURI("http://patient.info/search.asp?searchterm=" + diagnosesName + "&searchcoll=All");
+            common = result['Diagnosis_checklist']['diagnosis'][i]['common_diagnoses'][0];
+            urgent = result['Diagnosis_checklist']['diagnosis'][i]['red_flag'][0];
+            weightage = result['Diagnosis_checklist']['diagnosis'][i]['weightage'][0];
+            var newDiagnosis = {
+                diagnosis: {
+                    'diagnosisName': diagnosesName,
+                    'diagnosesUrl': diagnosesUrl,
+                    'common': common,
+                    'urgent': urgent,
+                    'weightage': weightage
+                }
+            };
+
+            conditions.push(newDiagnosis);
         };
     });
 
@@ -950,14 +954,38 @@ function sendGenericMessage(recipientId) {
 }
 
 function sendConditionsAsStructuredMessage(recipientId, conditions) {
-    var subtitleText = "";
-    if (conditions.diagnosis.common == "true") {
-        subtitleText += "[Common] ";
+    var diagnosisElements = [];
+
+    for (var i = 0; i < 5; i++) {
+        var subtitleText = "";
+        if (conditions[i].diagnosis.common == "true") {
+            subtitleText += "[Common] ";
+        }
+        if (conditions[i].diagnosis.urgent == "true") {
+            subtitleText += "[Urgent] ";
+        }
+        subtitleText += "Weight: " + conditions[i].diagnosis.weightage;
+
+        var newElement =
+            [
+                {
+                    title: conditions[i].diagnosis.diagnosisName,
+                    subtitle: subtitleText,
+                    item_url: conditions[i].diagnosis.diagnosesUrl,
+                    image_url: SERVER_URL + "/assets/rift.png",
+                    buttons: [{
+                        type: "web_url",
+                        url: conditions[i].diagnosis.diagnosesUrl,
+                        title: "Open Web URL"
+                    }, {
+                            type: "postback",
+                            title: "Call Postback",
+                            payload: "Payload for second bubble",
+                        }]
+                }]
+        diagnosisElements.push(newElement);
     }
-    if (conditions.diagnosis.urgent == "true") {
-        subtitleText += "[Urgent] ";
-    }
-    subtitleText += "Weight: " + conditions.diagnosis.weightage;
+
 
     var messageData = {
         recipient: {
@@ -969,22 +997,7 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
                 type: "template",
                 payload: {
                     template_type: "generic",
-                    elements: [
-                        {
-                            title: conditions.diagnosis.diagnosisName,
-                            subtitle: subtitleText,
-                            item_url: conditions.diagnosis.diagnosesUrl,
-                            image_url: SERVER_URL + "/assets/rift.png",
-                            buttons: [{
-                                type: "web_url",
-                                url: conditions.diagnosis.diagnosesUrl,
-                                title: "Open Web URL"
-                            }, {
-                                    type: "postback",
-                                    title: "Call Postback",
-                                    payload: "Payload for second bubble",
-                                }]
-                        }]
+                    elements: diagnosisElements
                 }
             }
 
