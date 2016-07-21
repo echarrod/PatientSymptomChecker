@@ -470,17 +470,6 @@ function sendPotentialDiagnoses(messageText, senderID) {
     sendConditionsAsStructuredMessage(senderID, conditions);
 }
 
-function LogName(name) {
-    console.log("name: " + name);
-
-    return name
-}
-
-function getDiagnoses(queryText) {
-
-}
-
-
 function getJSON(encodedURI, callback) {
     request({
         url: encodedURI,
@@ -959,12 +948,6 @@ function sendGenericMessage(recipientId) {
     callSendAPI(messageData);
 }
 
-
-
-/*
- * Send a Structured Message (Generic Message type) using the Send API.
- *
- */
 function sendConditionsAsStructuredMessage(recipientId, conditions) {
     var subtitleText = "";
     if (conditions.diagnosesName.common == "true") {
@@ -984,25 +967,12 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
                 type: "template",
                 payload: {
                     template_type: "generic",
-                    elements: [{
-                        title: conditions.diagnosesName,
-                        subtitle: subtitleText,
-                        item_url: conditions.diagnosesName.diagnosesUrl,
-                        //image_url: SERVER_URL + "/assets/rift.png",
-                        buttons: [{
-                            type: "web_url",
-                            url: conditions.diagnosesName.diagnosesUrl,
-                            title: "Open Web URL"
-                            }, {
-                                type: "postback",
-                                title: "More info",
-                                payload: "Payload for first bubble",
-                            }],
-                            }, {
+                    elements: [
+                        {
                             title: conditions.diagnosesName,
                             subtitle: subtitleText,
                             item_url: conditions.diagnosesName.diagnosesUrl,
-                            //image_url: SERVER_URL + "/assets/rift.png",
+                            image_url: SERVER_URL + "/assets/rift.png",
                             buttons: [{
                                 type: "web_url",
                                 url: conditions.diagnosesName.diagnosesUrl,
@@ -1012,12 +982,27 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
                                     title: "More info",
                                     payload: "Payload for first bubble",
                                 }],
-                            },
-                            {
+                        },
+                        {
                             title: conditions.diagnosesName,
                             subtitle: subtitleText,
                             item_url: conditions.diagnosesName.diagnosesUrl,
-                            //image_url: SERVER_URL + "/assets/rift.png",
+                            image_url: SERVER_URL + "/assets/rift.png",
+                            buttons: [{
+                                type: "web_url",
+                                url: conditions.diagnosesName.diagnosesUrl,
+                                title: "Open Web URL"
+                            }, {
+                                    type: "postback",
+                                    title: "More info",
+                                    payload: "Payload for first bubble",
+                                }],
+                        },
+                        {
+                            title: conditions.diagnosesName,
+                            subtitle: subtitleText,
+                            item_url: conditions.diagnosesName.diagnosesUrl,
+                            image_url: SERVER_URL + "/assets/rift.png",
                             buttons: [{
                                 type: "web_url",
                                 url: conditions.diagnosesName.diagnosesUrl,
