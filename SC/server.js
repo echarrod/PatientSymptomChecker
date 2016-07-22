@@ -450,24 +450,29 @@ function sendPotentialDiagnoses(messageText, senderID) {
     var diagnosesUrl;
     var common
     var urgent
-    var weightage;
+    var relevance;
+    var count = 10;
 
     parser.parseString(xml, function (err, result) {
         //Extract the value from the data element
+        for (var i = 0; i < 10; i++) {
+            if (typeof result['Diagnosis_checklist']['diagnosis'][i] === 'undefined') {
+                count = i; //would be one too many, had we not set it to start at 0
+                break;
+            }
 
-        for (var i = 0; i < 5; i++) {
             diagnosesName = result['Diagnosis_checklist']['diagnosis'][i]['diagnoses_name'][0];
             diagnosesUrl = encodeURI("http://patient.info/search.asp?searchterm=" + diagnosesName + "&searchcoll=All");
             common = result['Diagnosis_checklist']['diagnosis'][i]['common_diagnoses'][0];
             urgent = result['Diagnosis_checklist']['diagnosis'][i]['red_flag'][0];
-            weightage = result['Diagnosis_checklist']['diagnosis'][i]['weightage'][0];
+            relevance = result['Diagnosis_checklist']['diagnosis'][i]['weightage'][0];
             var newDiagnosis = {
                 diagnosis: {
                     'diagnosisName': diagnosesName,
                     'diagnosesUrl': diagnosesUrl,
                     'common': common,
                     'urgent': urgent,
-                    'weightage': weightage
+                    'relevance': relevance
                 }
             };
 
@@ -476,7 +481,7 @@ function sendPotentialDiagnoses(messageText, senderID) {
     });
 
 
-    sendConditionsAsStructuredMessage(senderID, conditions);
+    sendConditionsAsStructuredMessage(senderID, conditions, count);
 }
 
 function getJSON(encodedURI, callback) {
@@ -575,13 +580,13 @@ function receivedPostback(event) {
             if (payload.substring(0, moreInfoPayloadPrefix.length) == moreInfoPayloadPrefix) {
                 var moreInfoResponse = "";
                 //if (payload.indexOf(urgentTag) > -1) {
-                    moreInfoResponse += "[Urgent]\r\n" +
-                        "Seek medical advice immediately if you're concerned this may apply to you, as emergency medical attention is required.\r\n\r\n";
+                moreInfoResponse += "[Urgent]\r\n" +
+                    "Seek medical advice immediately if you're concerned this may apply to you, as emergency medical attention is required.\r\n\r\n";
                 //}
                 //if (payload.indexOf(commonTag) > -1) {
-                    moreInfoResponse += "[Common]\r\nThis diagnosis is common in your region.\r\n\r\n";
+                moreInfoResponse += "[Common]\r\nThis diagnosis is common in your region.\r\n\r\n";
                 //}
-                moreInfoResponse += "Weightage - the degree of match between the query entered and the diagnosis database."
+                moreInfoResponse += "Relevance\r\nThe degree of match between the query entered and the diagnosis database."
                 //   + "For more information on the diagnosis, see the Patient.Info link above.";
                 sendTextMessage(senderID, moreInfoResponse);
             }
@@ -972,10 +977,10 @@ function sendGenericMessage(recipientId) {
     callSendAPI(messageData);
 }
 
-function sendConditionsAsStructuredMessage(recipientId, conditions) {
+function sendConditionsAsStructuredMessage(recipientId, conditions, count) {
     var diagnosisElements = [];
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < count; i++) {
         var subtitleText = "";
         if (conditions[i].diagnosis.common == "true") {
             subtitleText += commonTag + " ";
@@ -983,7 +988,7 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
         if (conditions[i].diagnosis.urgent == "true") {
             subtitleText += urgentTag + " ";
         }
-        subtitleText += "Weight: " + conditions[i].diagnosis.weightage;
+        subtitleText += "Relevance: " + conditions[i].diagnosis.relevance;
 
         var newElement =
             {
@@ -993,7 +998,7 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
                 //image_url: SERVER_URL + "/assets/rift.png",
                 buttons: [{
                     type: "postback",
-                    title: "More Info.",
+                    title: "About these results",
                     payload: "MORE_INFO_" + subtitleText,
                 },
                     {
