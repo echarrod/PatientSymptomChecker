@@ -435,10 +435,17 @@ function sendPotentialDiagnoses(messageText, senderID) {
 
     getJSON(encodedURI, assignJSON);
 
+    var secondCount = 0
+
     if (jsonResponse == null) {
-        console.log("No JsonResponse");
+        if (secondCount > 5)
+            setTimeout(waitForJsonToBeRetrieved, 1000);
         return;
     }
+    //if (jsonResponse == null) {
+    //    console.log("No JsonResponse");
+    //    return;
+    //}
 
     var xml = jsonResponse;
 
