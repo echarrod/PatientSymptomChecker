@@ -25,6 +25,10 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
 
+var moreInfoPayloadPrefix = "MORE_INFO_";
+var urgentTag = "[Urgent]";
+var commonTag = "[Common]";
+
 /*
  * Be sure to setup your config values before running this code. You can 
  * set them using environment variables or modifying the config file in /config.
@@ -568,8 +572,23 @@ function receivedPostback(event) {
             break;
 
         default:
-            sendTextMessage(senderID, "Postback called");
-            break;
+            if (payload.substring(0, moreInfoPayloadPrefix.length) == moreInfoPayloadPrefix) {
+                var moreInfoResponse = "";
+                //if (payload.indexOf(urgentTag) > -1) {
+                    moreInfoResponse += "[Urgent]\r\n" +
+                        "Seek medical advice immediately if you're concerned this may apply to you, as emergency medical attention is required.\r\n\r\n";
+                //}
+                //if (payload.indexOf(commonTag) > -1) {
+                    moreInfoResponse += "[Common]\r\nThis diagnosis is common in your region.\r\n\r\n";
+                //}
+                moreInfoResponse += "Weightage - the degree of match between the query entered and the diagnosis database."
+                //   + "For more information on the diagnosis, see the Patient.Info link above.";
+                sendTextMessage(senderID, moreInfoResponse);
+            }
+            else {
+                sendTextMessage(senderID, "Postback called");
+                break;
+            }
     }
 
     // When a postback is called, we'll send a message back to the sender to 
@@ -959,30 +978,30 @@ function sendConditionsAsStructuredMessage(recipientId, conditions) {
     for (var i = 0; i < 5; i++) {
         var subtitleText = "";
         if (conditions[i].diagnosis.common == "true") {
-            subtitleText += "[Common] ";
+            subtitleText += commonTag + " ";
         }
         if (conditions[i].diagnosis.urgent == "true") {
-            subtitleText += "[Urgent] ";
+            subtitleText += urgentTag + " ";
         }
         subtitleText += "Weight: " + conditions[i].diagnosis.weightage;
 
         var newElement =
-            [
-                {
-                    title: conditions[i].diagnosis.diagnosisName,
-                    subtitle: subtitleText,
-                    item_url: conditions[i].diagnosis.diagnosesUrl,
-                    image_url: SERVER_URL + "/assets/rift.png",
-                    buttons: [{
+            {
+                title: conditions[i].diagnosis.diagnosisName,
+                subtitle: subtitleText,
+                //item_url: conditions[i].diagnosis.diagnosesUrl,
+                //image_url: SERVER_URL + "/assets/rift.png",
+                buttons: [{
+                    type: "postback",
+                    title: "More Info.",
+                    payload: "MORE_INFO_" + subtitleText,
+                },
+                    {
                         type: "web_url",
                         url: conditions[i].diagnosis.diagnosesUrl,
-                        title: "Open Web URL"
-                    }, {
-                            type: "postback",
-                            title: "Call Postback",
-                            payload: "Payload for second bubble",
-                        }]
-                }]
+                        title: "View on Patient.info"
+                    }]
+            }
         diagnosisElements.push(newElement);
     }
 
